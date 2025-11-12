@@ -6,8 +6,8 @@
 # to the next operating system release.
 
 # Script version and release
-script_version='4.1.0'
-script_release='release'  # options devel, beta, release, stable
+script_version='4.2.2'
+script_release='beta'  # options devel, beta, release, stable
 
 # Uncomment to enable bash xtrace mode.
 # set -xv
@@ -46,19 +46,20 @@ show_help() {
 	The additional options provide more package sources and functionality.
 
 	Options:
-	 -a, --all   update all packages, Flatpaks, Snaps and firmware
-	 --apt       update apt (aka Debian) packages
-	 --dnf       update dnf and yum (aka Red Hat) packages
-	 --firmware  update hardware firmware
-	 --flatpak   update Flatpak packages
-	 --macos     update App Store and MacPorts (aka port) packages
-	 --opkg      update OpenWrt (aka opkg) packages
-	 --python    update Python3 (aka pip3) packages
-	 --snap      update Snap packages
-	 --wsl       update Windows Subsystem for Linux packages
+	 -a, --all   Update all packages, Flatpaks, Snaps and firmware
+	 --apt       Update apt (aka Debian) packages
+	 --dnf       Update dnf and yum (aka Red Hat) packages
+	 --firmware  Update hardware firmware
+	 --flatpak   Update Flatpak packages
+	 --macos     Update App Store and MacPorts (aka port) packages
+	 --opkg      Update OpenWrt (aka opkg) packages
+	 --python    Update Python3 (aka pip3) packages
+	 --snap      Update Snap packages
+	 --winget    Update Microsoft Store and other installed packages
+	 --wsl       Update Windows Subsystem for Linux packages
 
-	 -v, --version  show version and exit
-	 -h, --help     show this help message and exit
+	 -v, --version  Show version and exit
+	 -h, --help     Show this help message and exit
 
 	When using the normal or lts options; swupdate tries to upgrade Ubuntu with
 	third party mirrors and repositories enabled instead of commenting out.
@@ -190,12 +191,22 @@ snap_packages() {
 	fi
 }
 
+winget_packages() {
+	# Set absolute path to the winget.exe binary.
+	# Using methods like which command do not work as root user.
+	local winget_binary="$NTHOME/AppData/Local/Microsoft/WindowsApps/winget.exe"
+	if [[ -x "$(which winget.exe)" ]]; then
+		# winget.exe source update
+		winget.exe update --all
+	fi
+}
+
 wsl2_packages() {
-	# Set complete path to the Windows Subsystem for Linux binary.
-	# Using methods like the which command don't work as root.
+	# Set complete path to the wsl.exe binary.
+	# Using methods like which command do not work as root user.
 	local wsl_binary="/mnt/c/WINDOWS/system32/wsl.exe"
-	if [[ -x "$wsl_binary" ]]; then
-		$wsl_binary --update
+	if [[ -x "$(which wsl.exe)" ]]; then
+		wsl.exe --update
 	fi
 }
 
@@ -248,6 +259,7 @@ case "$1" in
 	opkg_packages
 	flatpak_packages
 	snap_packages
+	winget_packages
 	wsl2_packages
 	firmware_packages
 	;;
@@ -274,6 +286,9 @@ case "$1" in
 	;;
 --snap)
 	snap_packages
+	;;
+--winget | --msstore)
+	winget_packages
 	;;
 --wsl | --wsl2)
 	wsl2_packages
