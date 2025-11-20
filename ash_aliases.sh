@@ -3,7 +3,7 @@
 # Helpful aliases for busybox sysadmins, developers and the forgetful.
 
 # Script version and release
-script_version='4.1.6'
+script_version='4.2.0'
 script_release='release'  # options devel, beta, release, stable
 export ALIASES_VERSION="$script_version-$script_release"
 

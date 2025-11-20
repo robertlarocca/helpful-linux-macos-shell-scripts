@@ -3,7 +3,7 @@
 # Helpful aliases for zsh sysadmins, developers and the forgetful.
 
 # Script version and release
-script_version='4.1.6'
+script_version='4.2.0'
 script_release='release'  # options devel, beta, release, stable
 export ALIASES_VERSION="$script_version-$script_release"
 
@@ -202,30 +202,70 @@ lvmsnapshot() {
 	EOF_XYZ
 }
 
-# Generate a secure random pre-shared key.
+# Generate a single secure random pre-shared key.
 mkpsk() {
-	head -c 64 /dev/urandom | base64
+	case "$1" in
+	wrap | --wrap | -w)
+		psk=$(head -c 64 /dev/urandom | base64)
+		;;
+	long | --long | -l | *)
+		# Default
+		psk=$(head -c 64 /dev/urandom | base64 --wrap=0)
+		;;
+	esac
+
+	echo "$psk"
+	unset psk
 }
 
-# Generate a secure random password.
+# Generate a single secure random password.
 mkpw() {
 	if [[ -x "$(which pwgen 2> /dev/null)" ]]; then
-		pwgen --capitalize --numerals --symbols --ambiguous 14 1
+		pw=$(pwgen --capitalize --numerals --symbols --ambiguous 20 1)
 	else
 		if [[ -x "/usr/lib/command-not-found" ]]; then
-			/usr/lib/command-not-found "pwgen"
-		elif [[ "$(uname -s)" == "Darwin" ]] && [[ -x "$(which port 2> /dev/null)" ]]; then
-			cat <<-EOF_XYZ 2>&1
-			Command 'pwgen' not found, but can be installed with:
-			sudo port install pwgen
-			EOF_XYZ
+		/usr/lib/command-not-found "pwgen"
+		elif [[ "$(uname -s)" == "Darwin" ]]; then
+		cat <<-EOF_XYZ 2>&1
+		Command 'pwgen' not found, but can be installed on macOS with:
+		 brew install pwgen  <or>
+		 port install pwgen
+
+		Remember: You must use the package manager installed on your operating system!
+		EOF_XYZ
+		else
+		cat <<-EOF_XYZ 2>&1
+		Command 'pwgen' not found, but can be installed with:
+		 apt install pwgen      <or>
+		 dnf install pwgen      <or>
+		 flatpak install pwgen  <or>
+		 snap install pwgen     <or>
+		 yum install pwgen      <or>
+		 zypper install pwgen
+
+		Remember: You must use the package manager for your operating system!
+		EOF_XYZ
 		fi
 	fi
+
+	echo "$pw"
+	unset pw
 }
 
-# Generate a secure random LUKS device secret.
+# Generate a single secure random LUKS device secret.
 mksecret() {
-	head -c 512 /dev/urandom | base64
+	case "$1" in
+	long | --long | -l)
+		secret=$(head -c 512 /dev/urandom | base64 --wrap=0)
+		;;
+	wrap | --wrap | -w | *)
+		# Default
+		secret=$(head -c 512 /dev/urandom | base64)
+		;;
+	esac
+
+	echo "$secret"
+	unset secret
 }
 
 # Check website availability and display security headers.
